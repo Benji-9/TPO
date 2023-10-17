@@ -58,7 +58,9 @@ def CargarProductos():
         "Secadora":350,
         "Horno":400,
         "Cafetera":250,
-        "Pymer":50
+        "Pymer":50,
+        "AC":720,
+        "Calefactor":720
     } #Diccionario con los productos:precios 
     try:
         ArcProductos = open("Productos.txt", "w")
