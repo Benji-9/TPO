@@ -2,25 +2,10 @@ import random
 def ValidarVendedor(Vendedor):
     return len(str(Vendedor)) == 6
 
-def ObtenerProductosMasVendidoYCaro(VentasVendedor, Productos):
-    ProductoMasVendido = max(VentasVendedor, key=VentasVendedor.get)
-    ProductoMasCaro = max(VentasVendedor, key=lambda x: Productos[x])
-
-    return ProductoMasVendido, ProductoMasCaro
-
-def GenerarVentasAleatorias(Productos):
-    VentasVendedor = {}
-    TotalVentas = 0
-
-    while TotalVentas < 50:
-        Producto = random.choice(list(Productos.keys()))
-        CantidadVentas = random.randint(1, 50 - TotalVentas)
-        VentasVendedor[Producto] = CantidadVentas
-        TotalVentas += CantidadVentas
-
-    return VentasVendedor
-
 def VerificarFecha(DD, MM, AA):
+    '''
+    Verifica que la fecha sea correcta, teniendo en cuenta años bisiestos y los dias en los meses correspondientes.
+    '''
     if AA > 0:
         if MM >= 1 and MM <= 12:
             if MM == 4 or MM == 6 or MM == 9 or MM == 11:
@@ -48,41 +33,44 @@ def VerificarFecha(DD, MM, AA):
     else:
         return False
 
-def CargarProductos():
-    Productos = {
-        "Televisor": 500,
-        "Lavadora": 400,
-        "Heladera": 600,
-        "Microondas": 200,
-        "Tostadora": 100,
-        "Secadora":350,
-        "Horno":400,
-        "Cafetera":250,
-        "Pymer":50,
-        "AC":720,
-        "Calefactor":720
-    } #Diccionario con los productos:precios 
-    try:
-        ArcProductos = open("Productos.txt", "w")
-        for Producto, Precio in Productos.items():
-            ArcProductos.write(f"{Producto};{Precio}\n")
-        print("Datos de productos guardados correctamente en el archivo 'Productos.txt'.")
-        return Productos
-    except OSError:
-        print("Error al procesar el archivo.")
-    finally:
-        try:
-            ArcProductos.close()
-        except NameError:
-            pass
+def GenerarVentas():
+    '''
+    Generador de ventas: Agarra de manera random un producto y genera una cantidad random de ventas, cada venta es guardada en un diccionario para 
+    llevar un registro.
+    Devuelve el diccionario para poder obtener el producto mas vendido por el vendedor y el producto mas caro.
+    '''
+    Productos = LeerProductos()
+    VentasVendedor = {}
+    TotalVentas = 0
+
+    while TotalVentas < 50:
+        Producto = random.choice(list(Productos.keys()))
+        CantidadVentas = random.randint(1, 50 - TotalVentas)
+        VentasVendedor[Producto] = CantidadVentas
+        TotalVentas += CantidadVentas
+
+    return VentasVendedor
+
+def ObtenerProductosMasVendidoYCaro(VentasVendedor):
+    '''
+    Funcion que obtiene a travez del diccionario VentasVendedor el producto que mas vendio el vendedor y el producto mas caro.
+    Devuelve las dos variables para que puedan ser incluidas en la matriz
+    '''
+    Productos = LeerProductos()
+    ProductoMasVendido = max(VentasVendedor, key=VentasVendedor.get)
+    ProductoMasCaro = max(VentasVendedor, key=lambda x: Productos[x])
+
+    return ProductoMasVendido, ProductoMasCaro
 
 def LeerProductos():
     DictProductos = {}
     try:
         ArcProductos = open("Productos.txt", "r")
-        for linea in ArcProductos:
-            Producto, Precio = linea.strip().split(";")
+        Linea = ArcProductos.readline()
+        while Linea:
+            Producto,Precio = Linea.split(";")
             DictProductos[Producto] = int(Precio)
+            Linea = ArcProductos.readline()
         return DictProductos
     except FileNotFoundError:
         print("No se pudo encontrar el archivo 'Productos.txt'.")
@@ -115,8 +103,8 @@ def CrearMatriz(Vendedores):
                     return None  # Retorna None en caso de demasiados intentos fallidos
 
                 Matriz[0][c] = CodVendedor  #Asigno la primera fila para el codigo de vendedor
-                VentasVendedor = GenerarVentasAleatorias(Productos)
-                ProductoMasVendido, ProductoMasCaro = ObtenerProductosMasVendidoYCaro(VentasVendedor, Productos)
+                VentasVendedor = GenerarVentas()
+                ProductoMasVendido, ProductoMasCaro = ObtenerProductosMasVendidoYCaro(VentasVendedor)
                 #Obtener el producto más vendido, utilizando el diccionario VentasVendedor
                 #Obtener el producto más caro vendido, utilizando el diccionario VentasVendedor
 
@@ -163,8 +151,9 @@ def LeerArchivo(Jornada):
         # Leer las líneas restantes y procesar los datos
         TotalVentas = 0
         TotalDinero = 0
-        for Linea in Archivo:
-            datos = Linea.strip().split(";")
+        Linea = Archivo.readline()
+        while Linea:
+            datos = Linea.split(";")
             if len(datos) == 5:  # Verificar si la línea tiene los 5 valores esperados
                 Cod_Vendedor, Cant_Ventas, Total_Ventas, Prod_Cant, Prod_Caro = datos
                 print(f'Cod.Vendedor: {str(Cod_Vendedor).rjust(25," ")}')
@@ -175,6 +164,7 @@ def LeerArchivo(Jornada):
                 print("-" * 40)
                 TotalVentas += int(Cant_Ventas)
                 TotalDinero += int(Total_Ventas)
+            Linea = Archivo.readline()
         print("Total de ventas de todos los vendedores:", TotalVentas)
         print("Total de dinero de todos los vendedores:", TotalDinero)
     except FileNotFoundError as MensajeError:
@@ -187,13 +177,9 @@ def LeerArchivo(Jornada):
         except NameError:
             pass
 
-def MostrarMatriz(Matriz, Vendedores):
-    for f in range(5):
-        print(" ".join(f"{Matriz[f][c]:<10}" for c in range(Vendedores)))
-
 def main():
     CantVendedores = int(input("Ingrese la cantidad de vendedores activos:")) #Pregunto cantidad de vendedores activos
-   
+
     while True: #Mientras que sea verdadero, realizo lo siguiente
         Dia = int(input("Ingrese el día: ")) #Pido el dia
         Mes = int(input("Ingrese el mes: ")) #Pido el mes
@@ -203,7 +189,7 @@ def main():
         else:
             print("Fecha inválida. Por favor, ingrese una fecha válida.") #En caso que sea incorrecta, muestro mensaje y vuelvo a pedir la fecha
 
-    CargarProductos() #Creo archivo productos
+    #CargarProductos() #Creo archivo productos
     Matriz,TotalVentas,TotalDinero = CrearMatriz(CantVendedores) #Creo matriz
     Jornada = GuardarJornada(Matriz, CantVendedores,Dia,Mes,Año,TotalVentas,TotalDinero) #Guardo la matriz en un txt, con la fecha como nombre de archivo
     LeerArchivo(Jornada) #Leo el archivo en formato de impresion
