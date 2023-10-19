@@ -1,0 +1,15 @@
+Televisor;500
+Lavadora;400
+Heladera;600
+Microondas;200
+Tostadora;100
+Secadora;350
+Horno;400
+Cafetera;250
+Pymer;50
+AC;720
+Calefactor;720
+Parlantes;315
+Lampara;85
+Lavavajilla;750
+Freidora;320

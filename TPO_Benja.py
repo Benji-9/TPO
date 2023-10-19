@@ -189,11 +189,9 @@ def main():
         else:
             print("Fecha inválida. Por favor, ingrese una fecha válida.") #En caso que sea incorrecta, muestro mensaje y vuelvo a pedir la fecha
 
-    #CargarProductos() #Creo archivo productos
     Matriz,TotalVentas,TotalDinero = CrearMatriz(CantVendedores) #Creo matriz
     Jornada = GuardarJornada(Matriz, CantVendedores,Dia,Mes,Año,TotalVentas,TotalDinero) #Guardo la matriz en un txt, con la fecha como nombre de archivo
     LeerArchivo(Jornada) #Leo el archivo en formato de impresion
-    #MostrarMatriz(Matriz, CantVendedores)
 
 if __name__ == "__main__":
     main()
