@@ -128,13 +128,14 @@ def CrearMatriz(Vendedores):
         print("No se pudo encontrar el archivo 'Productos.txt'.") #Imprimo este mensaje de error.
         return None
 
-def GuardarJornada(Matriz, Vendedores, DD, MM, AA,TotalVentas,TotalDinero,Empresa,Sigla):
+def GuardarJornada(Matriz, Vendedores, DD, MM, AA,TotalVentas,TotalDinero,Empresa):
     NombreArchivo = "Jornada-{}-{}-{}.txt".format(DD, MM, AA) #Creo nombre de archivo dependiendo la fecha otorgada por el usuario
     try:
         Jornada = open(NombreArchivo, "w") # Abro el archivo en modo escritura y lo guardo en la variable Jornada. Si no existe se crea, si existe se sobreescribe
         # Escribir la fecha en el archivo
         Jornada.write("{}/{}/{}\n".format(DD,MM,AA))
-        Jornada.write("{} - {}\n".format(Empresa,Sigla))
+        EmpresaF,Sigla = LogoEmpresa(Empresa)
+        Jornada.write("{} - {}\n".format(EmpresaF,Sigla))
         # Escribir los datos de la jornada en el archivo
         for i in range(Vendedores): # Para cada vendedor
             Jornada.write("{};{};{};{};{}\n".format(Matriz[0][i], Matriz[1][i], Matriz[2][i], Matriz[3][i], Matriz[4][i])) # Escribo en una línea cada dato.
@@ -198,9 +199,9 @@ def main():
             break #En caso que sea correcta, corto el ciclo while.
         else:
             print("Fecha inválida. Por favor, ingrese una fecha válida.") #En caso que sea incorrecta, muestro mensaje y vuelvo a pedir la fecha
-    EmpresaF,Sigla = LogoEmpresa(Empresa)
+    
     Matriz,TotalVentas,TotalDinero = CrearMatriz(CantVendedores) #Creo matriz
-    Jornada = GuardarJornada(Matriz, CantVendedores,Dia,Mes,Año,TotalVentas,TotalDinero,EmpresaF,Sigla) #Guardo la matriz en un txt, con la fecha como nombre de archivo
+    Jornada = GuardarJornada(Matriz, CantVendedores,Dia,Mes,Año,TotalVentas,TotalDinero,Empresa) #Guardo la matriz en un txt, con la fecha como nombre de archivo
     LeerArchivo(Jornada) #Leo el archivo en formato de impresion
 
 if __name__ == "__main__":
