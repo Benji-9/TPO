@@ -166,7 +166,7 @@ def LeerArchivo(Jornada):
         while Linea:
             datos = Linea.split(";")
             if len(datos) == 5:  # Verificar si la línea tiene los 5 valores esperados
-                Cod_Vendedor, Cant_Ventas, Total_Ventas, Prod_Cant, Prod_Caro = datos
+                Cod_Vendedor, Cant_Ventas, Total_Ventas, Prod_Cant, Prod_Caro = datos 
                 print(f'Cod.Vendedor: {str(Cod_Vendedor).rjust(25," ")}')
                 print(f'Cant. Ventas: {str(Cant_Ventas).rjust(25," ")}')
                 print(f'Total de $: {str(Total_Ventas).rjust(27," ")}')
