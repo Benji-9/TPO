@@ -1,208 +1,225 @@
+import os
 import random
-def ValidarVendedor(Vendedor):
-    return len(str(Vendedor)) == 6
+def GenerarCodigoVendedor():
+    vendedores_existentes = set()
+    while True:
+        codigo_vendedor = str(random.randint(10000, 99999))
+        if codigo_vendedor not in vendedores_existentes:
+            vendedores_existentes.add(codigo_vendedor)
+            return codigo_vendedor
 
-def VerificarFecha(DD, MM, AA):
-    '''
-    Verifica que la fecha sea correcta, teniendo en cuenta años bisiestos y los dias en los meses correspondientes.
-    '''
-    if AA > 0:
-        if MM >= 1 and MM <= 12:
-            if MM == 4 or MM == 6 or MM == 9 or MM == 11:
-                if DD >= 1 and DD <= 30:
-                    return True
-                else:
-                    return False
-            elif MM == 2:
-                if AA % 4 == 0 and (AA % 100 != 0 or AA % 400 == 0):
-                    if DD >= 1 and DD <= 29:
-                        return True
-                    else:
-                        return False
-                elif DD >= 1 and DD <= 28:
-                    return True
-                else:
-                    return False
-            else:
-                if DD >= 1 and DD <= 31:
-                    return True
-                else:
-                    return False
+def GenerarProductos():
+    productos = [["Heladera", 250, 500],
+                 ["Horno", 200, 450],
+                 ["Televisor", 400, 650],
+                 ["Microondas", 100, 350],
+                 ["Lavavajilla", 300, 550]]
+    try:
+        if os.path.exists("Productos.txt"):
+            os.remove("Productos.txt")
+        with open("Productos.txt", "a") as archivo_productos:
+            for producto in productos:
+                stock = random.randint(80, 200)
+                nombre, precio_lista, precio = producto
+                archivo_productos.write(f"{nombre};{precio_lista};{precio};{stock}\n")
+        print("Archivo de productos creado correctamente.")
+    except Exception as e:
+        print(f"Error al crear el archivo de productos: {e}")
+
+def ProductoExistente(producto, productos):
+    with open("Productos.txt", "r") as ArcProductos:
+        for linea in ArcProductos:
+            nombre_producto = linea.strip().split(";")[0]
+            if nombre_producto == producto:
+                return True
+    return False
+
+def AgregarProducto(Nombre, PrecioLista, Precio, productos):
+    try:
+        if not ProductoExistente(Nombre, productos):
+            with open("Productos.txt", "a") as ArcProductos:
+                Stock = random.randint(80, 200)
+                ArcProductos.write(f"{Nombre};{PrecioLista};{Precio};{Stock}\n")
+            print("Producto agregado correctamente.")
         else:
-            return False
-    else:
-        return False
-
-def LogoEmpresa(Empresa):
-    Sigla = ""
-    Siglas = Empresa.split(" ",len(Empresa))
-    for Palabra in Siglas:
-        Sigla = Sigla + Palabra[0].upper()
-    return Empresa,Sigla
-
-def GenerarVentas():
-    '''
-    Generador de ventas: Agarra de manera random un producto y genera una cantidad random de ventas, cada venta es guardada en un diccionario para 
-    llevar un registro.
-    Devuelve el diccionario para poder obtener el producto mas vendido por el vendedor y el producto mas caro.
-    '''
-    Productos = LeerProductos()
-    VentasVendedor = {}
-    TotalVentas = 0
-
-    while TotalVentas < 50:
-        Producto = random.choice(list(Productos.keys()))
-        CantidadVentas = random.randint(1, 50 - TotalVentas)
-        VentasVendedor[Producto] = CantidadVentas
-        TotalVentas += CantidadVentas
-
-    return VentasVendedor
-
-def ObtenerProductosMasVendidoYCaro(VentasVendedor):
-    '''
-    Funcion que obtiene a travez del diccionario VentasVendedor el producto que mas vendio el vendedor y el producto mas caro.
-    Devuelve las dos variables para que puedan ser incluidas en la matriz
-    '''
-    Productos = LeerProductos()
-    ProductoMasVendido = max(VentasVendedor, key=VentasVendedor.get)
-    ProductoMasCaro = max(VentasVendedor, key=lambda x: Productos[x])
-
-    return ProductoMasVendido, ProductoMasCaro
+            print("El producto ya existe en el archivo.")
+    except Exception as e:
+        print(f"Error al agregar el producto: {e}")
 
 def LeerProductos():
-    DictProductos = {}
+    Productos = []
     try:
-        ArcProductos = open("Productos.txt", "r")
-        Linea = ArcProductos.readline()
-        while Linea:
-            Producto,Precio = Linea.split(";")
-            DictProductos[Producto] = int(Precio)
+        with open("Productos.txt", "r") as ArcProductos:
             Linea = ArcProductos.readline()
-        return DictProductos
+            while Linea:
+                codigo_producto,precio_lista, precio, stock = Linea.strip().split(";")
+                Productos.append([codigo_producto, int(precio_lista), int(precio), int(stock)])
+                Linea = ArcProductos.readline()
+        return Productos
     except FileNotFoundError:
         print("No se pudo encontrar el archivo 'Productos.txt'.")
         return None
-    finally:
-        try:
-            ArcProductos.close()
-        except NameError:
-            pass
 
-def CrearMatriz(Vendedores):
-    try:
-        Productos = LeerProductos()
-        if Productos:
-            Matriz = [[0] * Vendedores for _ in range(5)]
-            LVendedores = set()
-
-            for c in range(Vendedores):
-                Intentos = 3
-                while Intentos > 0:
-                    CodVendedor = input("Ingrese el código del vendedor {} (6 dígitos): ".format(c + 1))
-                    if ValidarVendedor(CodVendedor) and CodVendedor not in LVendedores:
-                        LVendedores.add(CodVendedor)
-                        break
-                    else:
-                        print("Código de vendedor no válido o ya utilizado.")
-                        Intentos -= 1
-                else:
-                    print("Demasiados intentos fallidos. Saliendo del programa.")
-                    return None  # Retorna None en caso de demasiados intentos fallidos
-
-                Matriz[0][c] = CodVendedor  #Asigno la primera fila para el codigo de vendedor
-                VentasVendedor = GenerarVentas()
-                ProductoMasVendido, ProductoMasCaro = ObtenerProductosMasVendidoYCaro(VentasVendedor)
-                #Obtener el producto más vendido, utilizando el diccionario VentasVendedor
-                #Obtener el producto más caro vendido, utilizando el diccionario VentasVendedor
-
-                Matriz[1][c] = sum(VentasVendedor.values()) #Asigno la segunda fila al total de ventas, uso la funcion sum.
-                Matriz[2][c] = sum([VentasVendedor[Producto] * Productos[Producto] for Producto in VentasVendedor.keys()]) #Asigno la fila 3 al total en $ de ventas, utilizando nuevamente la funcion sum y una listra por compresion
-                Matriz[3][c] = ProductoMasVendido  #Asigno la fila 4 al producto mas vendido
-                Matriz[4][c] = ProductoMasCaro #Asigno la fila 5 al producto mas caro vendido por el vendedor
-
-            Total_Ventas = sum(Matriz[1])
-            Total_Dinero = sum(Matriz[2])
-            return Matriz, Total_Ventas, Total_Dinero
-
-    except FileNotFoundError: #En caso de no encontrar el archivo
-        print("No se pudo encontrar el archivo 'Productos.txt'.") #Imprimo este mensaje de error.
+def GenerarVentasMensuales(Vendedores):
+    Productos = LeerProductos()
+    if Productos:
+        VentasMes = []
+        for _ in range(Vendedores):
+            VentasVendedor = []
+            for Producto in Productos:
+                CodigoProducto, PrecioLista, Precio, Stock = Producto
+                if Stock > 0:
+                    CantVendida = random.randint(1, min(80, Stock))
+                    CantVendida = min(CantVendida, Stock)
+                    if CantVendida > 0:
+                        Producto[3] -= CantVendida
+                        VentasVendedor.append([CodigoProducto, CantVendida, Precio])
+            VentasMes.append(VentasVendedor)
+        with open("Productos.txt", "w") as ArcProductos:
+            for Producto in Productos:
+                ArcProductos.write(f"{Producto[0]};{Producto[1]};{Producto[2]};{Producto[3]}\n")
+        return VentasMes
+    else:
+        print("No se pudieron cargar los productos.")
         return None
 
-def GuardarJornada(Matriz, Vendedores, DD, MM, AA,TotalVentas,TotalDinero,Empresa):
-    NombreArchivo = "Jornada-{}-{}-{}.txt".format(DD, MM, AA) #Creo nombre de archivo dependiendo la fecha otorgada por el usuario
+def ImprimirStock(productos):
+    if productos:
+        print("Stock de Productos:")
+        for producto in productos:
+            nombre, precio_lista, precio, stock = producto
+            if stock < 10:
+                estado_stock = "Restock"
+            else:
+                estado_stock = "Suficiente"
+            print(f"Producto: {nombre}, Stock: {stock}, Estado: {estado_stock}")
+    else:
+        print("No se pudieron cargar los datos de productos.")
+
+def ProductoMasVendido():
+    ProductosVendidos = {}
     try:
-        Jornada = open(NombreArchivo, "w") # Abro el archivo en modo escritura y lo guardo en la variable Jornada. Si no existe se crea, si existe se sobreescribe
-        # Escribir la fecha en el archivo
-        Jornada.write("{}/{}/{}\n".format(DD,MM,AA))
-        EmpresaF,Sigla = LogoEmpresa(Empresa)
-        Jornada.write("{} - {}\n".format(EmpresaF,Sigla))
-        # Escribir los datos de la jornada en el archivo
-        for i in range(Vendedores): # Para cada vendedor
-            Jornada.write("{};{};{};{};{}\n".format(Matriz[0][i], Matriz[1][i], Matriz[2][i], Matriz[3][i], Matriz[4][i])) # Escribo en una línea cada dato.
-        print("Datos de la jornada guardados correctamente en el archivo 'Jornada.txt'.") # Imprimo mensaje de que se guardó correctamente el archivo.
-        Jornada.write(str(TotalVentas)+";"+str(TotalDinero))
-        return NombreArchivo
-    except OSError:
-        print("Error al procesar el archivo.")
-    finally:
-        try:
-            Jornada.close()
-        except NameError:
-            pass
+        with open("VentasMensuales.txt", "r") as ArcVentas:
+            for Linea in ArcVentas:
+                valores = Linea.strip().split(";")
+                if len(valores) == 4:
+                    CodVendedor, Producto, Cantidad, PrecioVenta = valores
+                    Cantidad = int(Cantidad)
+                    ProductosVendidos[Producto] = ProductosVendidos.get(Producto, 0) + Cantidad
+                else:
+                    print(f"Error: La línea '{Linea.strip()}' no tiene el formato esperado.")
+        if ProductosVendidos:
+            Producto_Mas_Vendido = max(ProductosVendidos, key=ProductosVendidos.get)
+            Cantidad = ProductosVendidos[Producto_Mas_Vendido]
+            print(f"Producto más vendido: {Producto_Mas_Vendido} (Cantidad vendida: {Cantidad})")
+        else:
+            print("No hay datos de ventas disponibles.")
+    except FileNotFoundError:
+        print("No se pudo encontrar el archivo 'VentasMensuales.txt'.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+def OpcionesGerente():
+    ProductoMasVendido()
+
+def GuardarVentasMensuales(VentasMes):
+    try:
+        ArcVentas = open("VentasMensuales.txt", "w")
+        for VentasVendedor in VentasMes:
+            codigo_vendedor = GenerarCodigoVendedor()
+            for producto, cantidad, precio in VentasVendedor:
+                total_venta = cantidad * precio
+                ArcVentas.write(f"{codigo_vendedor};{producto};{cantidad};{total_venta}\n")
+        print("Ventas mensuales guardadas correctamente en 'VentasMensuales.txt'.")
+    except Exception as e:
+        print(f"Error al guardar las ventas mensuales: {e}")
+
+def LeerVentasMensuales():
+    ventas_mensuales = []
+    try:
+        with open("VentasMensuales.txt", "r") as archivo_ventas:
+            vendedor_actual = None
+            linea = archivo_ventas.readline().strip()
+            while linea:
+                if ";" in linea:
+                    valores = linea.split(";")
+                    vendedor, producto, cantidad, total_venta = valores[0], valores[1], int(valores[2]), int(valores[3])
+                    
+                    if vendedor_actual is None or vendedor != vendedor_actual["Vendedor"]:
+                        if vendedor_actual:
+                            ventas_mensuales.append(vendedor_actual)
+                        vendedor_actual = {"Vendedor": vendedor, "Productos": []}
+                    
+                    vendedor_actual["Productos"].append({
+                        "Producto": producto,
+                        "Cantidad": cantidad,
+                        "Total Venta": total_venta
+                    })
+                
+                linea = archivo_ventas.readline().strip()
+            
+            if vendedor_actual:
+                ventas_mensuales.append(vendedor_actual)
+                
+            return ventas_mensuales
     
-def LeerArchivo(Jornada):
-    try:
-        Archivo = open(Jornada, "r")
-        # Leer la fecha de la primera línea
-        Fecha = Archivo.readline().strip()
-        Empresa = Archivo.readline().strip()
-        print("Fecha:", Fecha)  # Imprimir la fecha
-        print("{}".format(Empresa))
-        print("-" * 40)
-        # Leer las líneas restantes y procesar los datos
-        TotalVentas = 0
-        TotalDinero = 0
-        Linea = Archivo.readline()
-        while Linea:
-            datos = Linea.split(";")
-            if len(datos) == 5:  # Verificar si la línea tiene los 5 valores esperados
-                Cod_Vendedor, Cant_Ventas, Total_Ventas, Prod_Cant, Prod_Caro = datos 
-                print(f'Cod.Vendedor: {str(Cod_Vendedor).rjust(25," ")}')
-                print(f'Cant. Ventas: {str(Cant_Ventas).rjust(25," ")}')
-                print(f'Total de $: {str(Total_Ventas).rjust(27," ")}')
-                print(f'Producto mas vendido: {str(Prod_Cant).rjust(17," ")}')
-                print(f'Producto mas caro vendido: {str(Prod_Caro).rjust(13," ")}')
-                print("-" * 40)
-                TotalVentas += int(Cant_Ventas)
-                TotalDinero += int(Total_Ventas)
-            Linea = Archivo.readline()
-        print("Total de ventas de todos los vendedores:", TotalVentas)
-        print("Total de dinero de todos los vendedores:", TotalDinero)
-    except FileNotFoundError as MensajeError:
-        print("No se puede abrir el archivo:", MensajeError)
-    except OSError as MensajeError:
-        print("Error de sistema:", MensajeError)
-    finally:
-        try:
-            Archivo.close()
-        except NameError:
-            pass
+    except FileNotFoundError:
+        print("No se pudo encontrar el archivo 'VentasMensuales.txt'.")
+        return None
 
 def main():
-    CantVendedores = int(input("Ingrese la cantidad de vendedores activos:")) #Pregunto cantidad de vendedores activos
-    Empresa = "Grupo 7 Electrodomesticos"
-    while True: #Mientras que sea verdadero, realizo lo siguiente
-        Dia = int(input("Ingrese el día: ")) #Pido el dia
-        Mes = int(input("Ingrese el mes: ")) #Pido el mes
-        Año = int(input("Ingrese el año: ")) #Pido el año
-        if VerificarFecha(Dia, Mes, Año): #Verifico la fecha
-            break #En caso que sea correcta, corto el ciclo while.
-        else:
-            print("Fecha inválida. Por favor, ingrese una fecha válida.") #En caso que sea incorrecta, muestro mensaje y vuelvo a pedir la fecha
-    
-    Matriz,TotalVentas,TotalDinero = CrearMatriz(CantVendedores) #Creo matriz
-    Jornada = GuardarJornada(Matriz, CantVendedores,Dia,Mes,Año,TotalVentas,TotalDinero,Empresa) #Guardo la matriz en un txt, con la fecha como nombre de archivo
-    LeerArchivo(Jornada) #Leo el archivo en formato de impresion
+    productos = LeerProductos()
+    TotalDinero = 0
+    if productos:
+        while True:
+            print("-" * 40)
+            print("Menu")
+            print("1: Generar archivo productos\n2: Agregar Producto\n3: Generar Ventas Mensuales\n4: Leer ventas\n5: OpcionesGerente\n6: Imprimir stock\n7: Salir")
+            print("-" * 40)
+            Selec = int(input())
+            print("-" * 40)
+
+            if Selec == 1:
+                GenerarProductos()
+            elif Selec == 2:
+                Producto = input("Ingrese el nombre de producto:")
+                PrecioLista = int(input("Ingrese el precio de lista:"))
+                Precio = int(input("Ingrese el precio:"))
+                AgregarProducto(Producto, PrecioLista, Precio, productos)
+                productos.append([Producto, PrecioLista, Precio])
+            elif Selec == 3:
+                CantVendedores = int(input("Ingrese el número de vendedores: "))
+                VentasMes = GenerarVentasMensuales(CantVendedores)
+                if VentasMes:
+                    GuardarVentasMensuales(VentasMes)
+                else:
+                    print("No se generaron ventas mensuales.")
+            elif Selec == 4:
+                ventas_mensuales = LeerVentasMensuales()
+                if ventas_mensuales:
+                    for vendedor in ventas_mensuales:
+                        total_productos_vendidos = 0
+                        print(f"Vendedor: {vendedor['Vendedor']}")
+                        for producto in vendedor["Productos"]:
+                            print(f"Producto: {producto['Producto']} | Cantidad: {producto['Cantidad']} | Total Venta: {producto['Total Venta']}")
+                            total_productos_vendidos += producto['Cantidad']
+                            TotalDinero += producto['Total Venta']
+                        print(f"Total de productos vendidos por este vendedor: {total_productos_vendidos}")
+                        print("-" * 40)
+                    print(f"Total de dinero del mes por todos los vendedores: {TotalDinero}")
+                    print("-" * 40)
+                else:
+                    print("No se pudieron cargar los datos de ventas mensuales.")
+            elif Selec == 5:
+                OpcionesGerente()
+            elif Selec == 6:
+                productos = LeerProductos()
+                ImprimirStock(productos)
+            elif Selec == 7:
+                print("Saliendo del programa.")
+                break
+            else:
+                print("Opción inválida. Por favor, ingrese 1, 2, 3, 4, 5 o 6")
 
 if __name__ == "__main__":
     main()
